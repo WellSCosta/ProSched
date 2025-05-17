@@ -1,6 +1,15 @@
 package com.wellscosta.ProSched.model;
 
 import com.wellscosta.ProSched.model.enums.Role;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -12,18 +21,26 @@ import lombok.Setter;
  * Se classifica entre profissional ou cliente através do enum Role
  */
 
+@Entity
+@Table(name = "usuarios")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class Usuario {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
     private String sobrenome;
-    private String cpf;
     private int idade;
+
+    @Column(unique = true)
     private String email;
     private String senha;
+
+    @Enumerated(EnumType.STRING)
     private Role role;
 }
