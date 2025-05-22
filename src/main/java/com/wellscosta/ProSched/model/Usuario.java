@@ -50,9 +50,24 @@ public class Usuario implements UserDetails{
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    public Usuario(String email, String senha, Role role) {
+        this.email = email;
+        this.senha = senha;
+        this.role = role;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
+        if (this.role == Role.ADMIN) //Caso seja ADMIN terá acesso por todas as Roles
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_ADMIN"),
+                    new SimpleGrantedAuthority("ROLE_PROFISSIONAL"),
+                    new SimpleGrantedAuthority("ROLE_CLIENTE"));
+
+        else if (this.role == Role.PROFISSIONAL) //Caso seja PROFISSIONAL apenas acesso ao de profissional
+            return List.of(new SimpleGrantedAuthority("ROLE_PROFISSIONAL"));
+
+        else return List.of(new SimpleGrantedAuthority("ROLE_CLIENTE")); //Caso seja CLIENTE apenas acesso ao de cliente
     }
 
     @Override
