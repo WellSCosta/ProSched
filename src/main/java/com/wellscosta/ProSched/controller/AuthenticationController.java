@@ -1,7 +1,9 @@
 package com.wellscosta.ProSched.controller;
 
 import com.wellscosta.ProSched.dto.AutenticacaoDTO;
+import com.wellscosta.ProSched.dto.LoginResponseDTO;
 import com.wellscosta.ProSched.dto.RegisterDTO;
+import com.wellscosta.ProSched.infra.security.TokenService;
 import com.wellscosta.ProSched.model.Usuario;
 import com.wellscosta.ProSched.repository.UsuarioRepository;
 import jakarta.validation.Valid;
@@ -23,6 +25,8 @@ public class AuthenticationController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private UsuarioRepository repository;
+    @Autowired
+    private TokenService tokenService;
 
     /**
      * Login do usuário, verificando o email e senha passados.
@@ -33,7 +37,9 @@ public class AuthenticationController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(autenticacaoDTO.email(), autenticacaoDTO.senha());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
-        return ResponseEntity.ok().build();
+        var token = tokenService.gerarToken((Usuario) auth.getPrincipal());
+
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
     /**
