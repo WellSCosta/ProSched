@@ -46,6 +46,7 @@ public class SecurityConfigurations {
                         .requestMatchers("/h2-console/**").permitAll() //Desabilita a autentificação para a URL do H2 database
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/disponibilidade/criar").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

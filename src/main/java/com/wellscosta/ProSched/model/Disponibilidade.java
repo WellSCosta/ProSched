@@ -1,6 +1,7 @@
 package com.wellscosta.ProSched.model;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,11 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Define os hórarios livres de um profissional
@@ -25,6 +22,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
+@Builder
 public class Disponibilidade {
 
     @Id
@@ -34,7 +32,7 @@ public class Disponibilidade {
     @ManyToOne
     private Usuario profissional;
 
-    private LocalDateTime inicio;
-    
-    private LocalDateTime fim;
+    private LocalDate data;
+    private LocalTime horaInicio;
+    private LocalTime horaFim;
 }

@@ -54,7 +54,14 @@ public class AuthenticationController {
 
         String senhaEncriptada = new BCryptPasswordEncoder().encode(registerDTO.senha()); //Faz a encriptação da senha para Hash
 
-        Usuario novoUsuario = new Usuario(registerDTO.email(), senhaEncriptada, registerDTO.role());
+        Usuario novoUsuario = new Usuario(
+                registerDTO.email(),
+                senhaEncriptada,
+                registerDTO.role(),
+                registerDTO.nome(),
+                registerDTO.sobrenome(),
+                registerDTO.idade()
+        );
         this.repository.save(novoUsuario);
 
         return ResponseEntity.ok().build();

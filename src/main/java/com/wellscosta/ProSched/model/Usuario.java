@@ -40,10 +40,13 @@ public class Usuario implements UserDetails{
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    public Usuario(String email, String senha, Role role) {
+    public Usuario(String email, String senha, Role role, String nome, String sobrenome, Integer idade) {
         this.email = email;
         this.senha = senha;
         this.role = role;
+        this.nome = nome;
+        this.sobrenome = sobrenome;
+        this.idade = idade;
     }
 
     @Override
