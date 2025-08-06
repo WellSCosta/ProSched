@@ -6,6 +6,7 @@ import com.wellscosta.ProSched.model.Usuario;
 import com.wellscosta.ProSched.repository.DisponibilidadeRepository;
 import com.wellscosta.ProSched.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,55 +20,92 @@ public class DisponibilidadeService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public Disponibilidade criarDisponibilidade(DisponibilidadeRequestDTO disponibilidadeDTO, Long usuarioId) {
-        Usuario usuario = buscarUsuario(usuarioId);
-        validarDispoonibilidade(disponibilidadeDTO, usuario);
+    private Usuario profissional = null;
 
-        //Salva a nova disponibilidade no banco
-        Disponibilidade disponibilidade = Disponibilidade.builder()
-                .profissional(usuario)
+    /**
+     * Busca o usuario pelo ID
+     * Cria uma instância disponibilidade para validar
+     * Valida a disponibilidade
+     * Registra a disponibilidade no banco
+     *
+     * @param disponibilidadeDTO
+     * @param usuarioId
+     * @return disponibilidade salva no banco
+     */
+    public Disponibilidade registrar(DisponibilidadeRequestDTO disponibilidadeDTO, Long usuarioId) {
+        buscarUsuario(usuarioId);
+        Disponibilidade disponibilidade = criarDisponibilidade(disponibilidadeDTO);
+        validarDisponibilidade(disponibilidade);
+
+        return salvarNoBanco(disponibilidade);
+    }
+
+    /**
+     * Verifica no banco se a disponibilidade existe.
+     */
+    public boolean diponibilidadeExiste(Disponibilidade disponibilidade) {
+        Example<Disponibilidade> queryExample = Example.of(disponibilidade);
+        return disponibilidadeRepository.exists(queryExample);
+    }
+
+    private Disponibilidade salvarNoBanco(Disponibilidade disponibilidade) {
+        return disponibilidadeRepository.save(disponibilidade);
+    }
+
+    private Disponibilidade criarDisponibilidade(DisponibilidadeRequestDTO disponibilidadeDTO) {
+        return Disponibilidade.builder()
+                .profissional(profissional)
                 .data(disponibilidadeDTO.data())
                 .horaInicio(disponibilidadeDTO.horaInicio())
                 .horaFim(disponibilidadeDTO.horaFim())
                 .build();
-
-        return disponibilidadeRepository.save(disponibilidade);
     }
 
-    private void validarDispoonibilidade(DisponibilidadeRequestDTO disponibilidadeDTO, Usuario usuario) {
-        //Valida se a data é futura
-        if (!isDataFutura(disponibilidadeDTO.data()))
-            throw new IllegalArgumentException("Data não pode ser no passado.");
+    /**
+     * Valida se a data é futura
+     * Valida se o horário fim é após o horário início
+     * Valida se há conflitos de horário
+     */
+    private void validarDisponibilidade(Disponibilidade disponibilidade) {
+        validarDataFutura(disponibilidade.getData());
+        validarHorarioInicioFim(disponibilidade.getHoraInicio(), disponibilidade.getHoraFim());
+        validarConflitoDeHorarios(disponibilidade);
+    }
 
-        //Valida se a hora fim é após a hora inicio
-        if (!isHoraFimAposHoraInicio(disponibilidadeDTO.horaInicio(), disponibilidadeDTO.horaFim()))
+    private void validarHorarioInicioFim(LocalTime horaInicio, LocalTime horaFim) {
+        if (!horaFim.isAfter(horaInicio)) {
             throw new IllegalArgumentException("Hora fim não pode ser antes da hora de inicio.");
+        }
+    }
 
-        //Busca as disponibilidades do usuário
-        List<Disponibilidade> disponibilidades = disponibilidadeRepository.findByProfissionalAndData(usuario, disponibilidadeDTO.data());
+    private void validarDataFutura(LocalDate data) {
+        if (!data.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Data não pode ser no passado.");
+        }
+    }
 
-        //Verifica se o horário da disponibilidade já está ocupado
-        if (isConflitoDisponibilidades(disponibilidadeDTO.horaInicio(), disponibilidadeDTO.horaFim(), disponibilidades))
+    /**
+     * Busca as disponibilidades do profissional no banco e verifica se há conflitos.
+     * TODO tentar diminuir a complexidade
+     */
+    private void validarConflitoDeHorarios(Disponibilidade disponibilidade) {
+        List<Disponibilidade> disponibilidades = buscarPorProfissionalEData(disponibilidade.getData(), profissional);
+
+        boolean conflito = !disponibilidades.stream().anyMatch(d ->
+                d.getHoraFim().isAfter(disponibilidade.getHoraInicio()) &&
+                        d.getHoraInicio().isBefore(disponibilidade.getHoraFim()));
+
+        if (conflito) {
             throw new IllegalArgumentException("Disponibilidade já existente no mesmo horário.");
-
+        }
     }
 
-    private boolean isHoraFimAposHoraInicio(LocalTime horaInicio, LocalTime horaFim) {
-        return horaFim.isAfter(horaInicio);
+    public List<Disponibilidade> buscarPorProfissionalEData(LocalDate data, Usuario profissional) {
+        return disponibilidadeRepository.findByProfissionalAndData(profissional, data);
     }
 
-    private boolean isDataFutura(LocalDate data) {
-        return data.isAfter(LocalDate.now());
-    }
-
-    private Usuario buscarUsuario(Long id) {
-        return usuarioRepository.findById(id)
+    private void buscarUsuario(Long id) {
+        profissional = usuarioRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
-    }
-
-    private boolean isConflitoDisponibilidades(LocalTime horaInicio, LocalTime horaFim, List<Disponibilidade> disponibilidades) {
-        return disponibilidades.stream().anyMatch(d ->
-                    d.getHoraFim().isAfter(horaInicio) &&
-                    d.getHoraInicio().isBefore(horaFim));
     }
 }

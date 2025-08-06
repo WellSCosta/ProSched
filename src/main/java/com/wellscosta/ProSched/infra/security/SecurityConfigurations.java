@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,9 +27,7 @@ public class SecurityConfigurations {
      * Desativa a segurança padrão e deixa STATELESS.
      * Desativa segurança para o banco H2.
 
-     * @param httpSecurity
      * @return SecurityFilterChain
-     * @throws Exception
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -46,7 +43,7 @@ public class SecurityConfigurations {
                         .requestMatchers("/h2-console/**").permitAll() //Desabilita a autentificação para a URL do H2 database
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/disponibilidade/criar").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/disponibilidade/criar").permitAll() //TODO: Alterar para ser acessado apenas pela role correta.
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
