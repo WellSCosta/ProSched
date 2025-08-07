@@ -28,8 +28,6 @@ public class DisponibilidadeService {
      * Valida a disponibilidade
      * Registra a disponibilidade no banco
      *
-     * @param disponibilidadeDTO
-     * @param usuarioId
      * @return disponibilidade salva no banco
      */
     public Disponibilidade registrar(DisponibilidadeRequestDTO disponibilidadeDTO, Long usuarioId) {
@@ -46,6 +44,10 @@ public class DisponibilidadeService {
     public boolean diponibilidadeExiste(Disponibilidade disponibilidade) {
         Example<Disponibilidade> queryExample = Example.of(disponibilidade);
         return disponibilidadeRepository.exists(queryExample);
+    }
+
+    public List<Disponibilidade> buscarPorProfissionalEData(LocalDate data, Usuario profissional) {
+        return disponibilidadeRepository.findByProfissionalAndData(profissional, data);
     }
 
     private Disponibilidade salvarNoBanco(Disponibilidade disponibilidade) {
@@ -86,23 +88,25 @@ public class DisponibilidadeService {
 
     /**
      * Busca as disponibilidades do profissional no banco e verifica se há conflitos.
-     * TODO tentar diminuir a complexidade
      */
-    private void validarConflitoDeHorarios(Disponibilidade disponibilidade) {
-        List<Disponibilidade> disponibilidades = buscarPorProfissionalEData(disponibilidade.getData(), profissional);
+    private void validarConflitoDeHorarios(Disponibilidade novaDisponibilidade) {
+        List<Disponibilidade> existentes = buscarPorProfissionalEData(novaDisponibilidade.getData(), profissional);
 
-        boolean conflito = !disponibilidades.stream().anyMatch(d ->
-                d.getHoraFim().isAfter(disponibilidade.getHoraInicio()) &&
-                        d.getHoraInicio().isBefore(disponibilidade.getHoraFim()));
+        boolean haConflito = existeConflito(novaDisponibilidade, existentes);
 
-        if (conflito) {
+        if (haConflito) {
             throw new IllegalArgumentException("Disponibilidade já existente no mesmo horário.");
         }
     }
 
-    public List<Disponibilidade> buscarPorProfissionalEData(LocalDate data, Usuario profissional) {
-        return disponibilidadeRepository.findByProfissionalAndData(profissional, data);
+    private boolean existeConflito(Disponibilidade nova, List<Disponibilidade> existentes) {
+        return existentes.stream().anyMatch(existente ->
+                existente.getHoraFim().isAfter(nova.getHoraInicio()) &&
+                        existente.getHoraInicio().isBefore(nova.getHoraFim())
+        );
     }
+
+
 
     private void buscarUsuario(Long id) {
         profissional = usuarioRepository.findById(id)
