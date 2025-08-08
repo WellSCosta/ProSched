@@ -1,7 +1,6 @@
 package com.wellscosta.ProSched.service;
 
 import com.wellscosta.ProSched.dto.AgendamentoDisponibilidadeRequestDTO;
-import com.wellscosta.ProSched.dto.AgendamentoRequestDTO;
 import com.wellscosta.ProSched.model.Agendamento;
 import com.wellscosta.ProSched.model.Disponibilidade;
 import com.wellscosta.ProSched.model.Usuario;
@@ -9,9 +8,11 @@ import com.wellscosta.ProSched.model.enums.StatusAgendamento;
 import com.wellscosta.ProSched.repository.AgendamentoRepository;
 import com.wellscosta.ProSched.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Service
 public class AgendamentoService {
 
     @Autowired
@@ -24,9 +25,9 @@ public class AgendamentoService {
     /**
      * Cliente solicita agendamento para o profissional
      */
-    public Agendamento solicitarAgendamento(AgendamentoRequestDTO agendamentoDTO, Long usuarioId) {
+    public Agendamento solicitarAgendamento(AgendamentoDisponibilidadeRequestDTO agendamentoDTO, Long usuarioId) {
         Usuario cliente = buscarUsuario(usuarioId);
-        Disponibilidade disponibilidade = verificaDisponibilidade(agendamentoDTO.disponibilidadeDTO());
+        Disponibilidade disponibilidade = verificaDisponibilidade(agendamentoDTO);
 
         return salvarSolicitacaoBanco(disponibilidade, cliente);
     }
@@ -41,7 +42,7 @@ public class AgendamentoService {
         Agendamento agendamento = Agendamento.builder()
                 .cliente(cliente)
                 .dataCriacao(LocalDateTime.now())
-                .horario(LocalDateTime.from(disponibilidade.getHoraInicio()))
+                .horario(disponibilidade.getData().atTime(disponibilidade.getHoraInicio()))
                 .status(StatusAgendamento.SOLICITADO)
                 .profissional(disponibilidade.getProfissional())
                 .build();
