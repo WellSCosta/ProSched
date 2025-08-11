@@ -19,21 +19,19 @@ public class DisponibilidadeService {
     private DisponibilidadeRepository disponibilidadeRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
-
-    private Usuario profissional = null;
-
     /**
      * Busca o usuario pelo ID
      * Cria uma instância disponibilidade para validar
      * Valida a disponibilidade
      * Registra a disponibilidade no banco
+     * TODO Criar validação se usuario não é nulo, disponibilidade não pode ser criadas com usuário nulo!
+     * TODO Verificar por que é possivel registrar nova disponibilidade sem fazer login, apenas com o registro de usuario.
      *
      * @return disponibilidade salva no banco
      */
-    public Disponibilidade registrar(DisponibilidadeRequestDTO disponibilidadeDTO, Long usuarioId) {
-        buscarUsuario(usuarioId);
-        Disponibilidade disponibilidade = criarDisponibilidade(disponibilidadeDTO);
-        validarDisponibilidade(disponibilidade);
+    public Disponibilidade registrar(DisponibilidadeRequestDTO disponibilidadeDTO, Usuario profissional) {
+        Disponibilidade disponibilidade = criarDisponibilidade(disponibilidadeDTO, profissional);
+        validarDisponibilidade(disponibilidade, profissional);
 
         return salvarNoBanco(disponibilidade);
     }
@@ -54,7 +52,7 @@ public class DisponibilidadeService {
         return disponibilidadeRepository.save(disponibilidade);
     }
 
-    private Disponibilidade criarDisponibilidade(DisponibilidadeRequestDTO disponibilidadeDTO) {
+    private Disponibilidade criarDisponibilidade(DisponibilidadeRequestDTO disponibilidadeDTO, Usuario profissional) {
         return Disponibilidade.builder()
                 .profissional(profissional)
                 .data(disponibilidadeDTO.data())
@@ -68,10 +66,10 @@ public class DisponibilidadeService {
      * Valida se o horário fim é após o horário início
      * Valida se há conflitos de horário
      */
-    private void validarDisponibilidade(Disponibilidade disponibilidade) {
+    private void validarDisponibilidade(Disponibilidade disponibilidade, Usuario profissional) {
         validarDataFutura(disponibilidade.getData());
         validarHorarioInicioFim(disponibilidade.getHoraInicio(), disponibilidade.getHoraFim());
-        validarConflitoDeHorarios(disponibilidade);
+        validarConflitoDeHorarios(disponibilidade, profissional);
     }
 
     private void validarHorarioInicioFim(LocalTime horaInicio, LocalTime horaFim) {
@@ -89,7 +87,7 @@ public class DisponibilidadeService {
     /**
      * Busca as disponibilidades do profissional no banco e verifica se há conflitos.
      */
-    private void validarConflitoDeHorarios(Disponibilidade novaDisponibilidade) {
+    private void validarConflitoDeHorarios(Disponibilidade novaDisponibilidade, Usuario profissional) {
         List<Disponibilidade> existentes = buscarPorProfissionalEData(novaDisponibilidade.getData(), profissional);
 
         boolean haConflito = existeConflito(novaDisponibilidade, existentes);
@@ -104,12 +102,5 @@ public class DisponibilidadeService {
                 existente.getHoraFim().isAfter(nova.getHoraInicio()) &&
                         existente.getHoraInicio().isBefore(nova.getHoraFim())
         );
-    }
-
-
-
-    private void buscarUsuario(Long id) {
-        profissional = usuarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
     }
 }

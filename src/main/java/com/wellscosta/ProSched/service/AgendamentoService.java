@@ -25,8 +25,7 @@ public class AgendamentoService {
     /**
      * Cliente solicita agendamento para o profissional
      */
-    public Agendamento solicitarAgendamento(AgendamentoDisponibilidadeRequestDTO agendamentoDTO, Long usuarioId) {
-        Usuario cliente = buscarUsuario(usuarioId);
+    public Agendamento solicitarAgendamento(AgendamentoDisponibilidadeRequestDTO agendamentoDTO, Usuario cliente) {
         Disponibilidade disponibilidade = verificaDisponibilidade(agendamentoDTO);
 
         return salvarSolicitacaoBanco(disponibilidade, cliente);
@@ -74,10 +73,5 @@ public class AgendamentoService {
                 .horaInicio(dto.horaInicio())
                 .profissional(dto.profissional())
                 .build();
-    }
-
-    private Usuario buscarUsuario(Long id) {
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
     }
 }
