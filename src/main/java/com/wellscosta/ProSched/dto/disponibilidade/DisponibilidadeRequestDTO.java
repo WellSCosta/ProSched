@@ -1,4 +1,4 @@
-package com.wellscosta.ProSched.dto;
+package com.wellscosta.ProSched.dto.disponibilidade;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

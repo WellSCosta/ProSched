@@ -1,8 +1,8 @@
 package com.wellscosta.ProSched.controller;
 
-import com.wellscosta.ProSched.dto.AutenticacaoDTO;
-import com.wellscosta.ProSched.dto.LoginResponseDTO;
-import com.wellscosta.ProSched.dto.RegisterDTO;
+import com.wellscosta.ProSched.dto.autentificacao.AutenticacaoDTO;
+import com.wellscosta.ProSched.dto.autentificacao.LoginResponseDTO;
+import com.wellscosta.ProSched.dto.autentificacao.RegisterDTO;
 import com.wellscosta.ProSched.infra.security.TokenService;
 import com.wellscosta.ProSched.model.Usuario;
 import com.wellscosta.ProSched.repository.UsuarioRepository;
@@ -33,7 +33,7 @@ public class AuthenticationController {
      * @param autenticacaoDTO (email e senha)
      */
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid AutenticacaoDTO autenticacaoDTO) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AutenticacaoDTO autenticacaoDTO) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(autenticacaoDTO.email(), autenticacaoDTO.senha());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 

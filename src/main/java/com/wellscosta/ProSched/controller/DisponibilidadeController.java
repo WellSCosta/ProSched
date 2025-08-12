@@ -1,7 +1,7 @@
 package com.wellscosta.ProSched.controller;
 
-import com.wellscosta.ProSched.dto.DisponibilidadeRequestDTO;
-import com.wellscosta.ProSched.dto.DisponibilidadeResponseDTO;
+import com.wellscosta.ProSched.dto.disponibilidade.DisponibilidadeRequestDTO;
+import com.wellscosta.ProSched.dto.disponibilidade.DisponibilidadeResponseDTO;
 import com.wellscosta.ProSched.infra.security.TokenService;
 import com.wellscosta.ProSched.model.Disponibilidade;
 import com.wellscosta.ProSched.model.Usuario;

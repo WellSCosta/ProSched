@@ -1,7 +1,8 @@
 package com.wellscosta.ProSched.controller;
 
-import com.wellscosta.ProSched.dto.AgendamentoDisponibilidadeRequestDTO;
-import com.wellscosta.ProSched.dto.AgendamentoResponseDTO;
+import com.wellscosta.ProSched.dto.agendamento.AgendamentoConfirmarRequestDTO;
+import com.wellscosta.ProSched.dto.agendamento.AgendamentoDisponibilidadeRequestDTO;
+import com.wellscosta.ProSched.dto.agendamento.AgendamentoResponseDTO;
 import com.wellscosta.ProSched.infra.security.TokenService;
 import com.wellscosta.ProSched.model.Agendamento;
 import com.wellscosta.ProSched.model.Usuario;
@@ -27,9 +28,22 @@ public class AgendamentoController {
     @Autowired
     private ModelMapper mapper;
 
+    /**
+     * Somente ROLE: Cliente
+     */
     @PostMapping("/solicitar")
     public ResponseEntity<AgendamentoResponseDTO> solicitarAgendamento(@RequestBody @Valid AgendamentoDisponibilidadeRequestDTO requestDTO, @AuthenticationPrincipal Usuario usuario) {
         Agendamento agendamento = agendamentoService.solicitarAgendamento(requestDTO, usuario);
+        AgendamentoResponseDTO responseDTO = mapper.map(agendamento, AgendamentoResponseDTO.class);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    /**
+     * Somente ROLE: Profissional
+     */
+    @PutMapping("/confirmar")
+    public ResponseEntity<AgendamentoResponseDTO> confirmarAgendamento(@RequestBody @Valid AgendamentoConfirmarRequestDTO requestDTO) {
+        Agendamento agendamento = agendamentoService.confirmarAgendamento(requestDTO);
         AgendamentoResponseDTO responseDTO = mapper.map(agendamento, AgendamentoResponseDTO.class);
         return ResponseEntity.ok(responseDTO);
     }

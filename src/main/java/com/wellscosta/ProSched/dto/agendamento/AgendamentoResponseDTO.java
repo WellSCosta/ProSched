@@ -1,5 +1,6 @@
-package com.wellscosta.ProSched.dto;
+package com.wellscosta.ProSched.dto.agendamento;
 
+import com.wellscosta.ProSched.dto.UsuarioResponseDTO;
 import com.wellscosta.ProSched.model.enums.StatusAgendamento;
 import lombok.AllArgsConstructor;
 import lombok.Data;

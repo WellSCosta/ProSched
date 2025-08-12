@@ -26,7 +26,8 @@ public class SecurityConfigurations {
     /**
      * Desativa a segurança padrão e deixa STATELESS.
      * Desativa segurança para o banco H2.
-
+     * TODO alterar config para ROLE dos controllers.
+     * @see com.wellscosta.ProSched.controller.AgendamentoController
      * @return SecurityFilterChain
      */
     @Bean
@@ -43,7 +44,8 @@ public class SecurityConfigurations {
                         .requestMatchers("/h2-console/**").permitAll() //Desabilita a autentificação para a URL do H2 database
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/disponibilidade/criar").permitAll() //TODO: Alterar para ser acessado apenas pela role correta.
+                        .requestMatchers(HttpMethod.POST, "/disponibilidade/criar").permitAll() //TODO: Apagar, para solicitar autenticação
+                        .requestMatchers(HttpMethod.POST, "/agendamento/solicitar").permitAll() //TODO: Apagar, para solicitar autenticação
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

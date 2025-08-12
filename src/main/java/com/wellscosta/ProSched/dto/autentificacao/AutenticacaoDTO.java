@@ -1,4 +1,4 @@
-package com.wellscosta.ProSched.dto;
+package com.wellscosta.ProSched.dto.autentificacao;
 
 public record AutenticacaoDTO(String email, String senha) {
 }

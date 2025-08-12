@@ -1,5 +1,6 @@
-package com.wellscosta.ProSched.dto;
+package com.wellscosta.ProSched.dto.disponibilidade;
 
+import com.wellscosta.ProSched.dto.UsuarioResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

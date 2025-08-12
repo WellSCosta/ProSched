@@ -1,6 +1,6 @@
 package com.wellscosta.ProSched.service;
 
-import com.wellscosta.ProSched.dto.DisponibilidadeRequestDTO;
+import com.wellscosta.ProSched.dto.disponibilidade.DisponibilidadeRequestDTO;
 import com.wellscosta.ProSched.model.Disponibilidade;
 import com.wellscosta.ProSched.model.Usuario;
 import com.wellscosta.ProSched.repository.DisponibilidadeRepository;

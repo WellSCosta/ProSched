@@ -1,4 +1,4 @@
-package com.wellscosta.ProSched.dto;
+package com.wellscosta.ProSched.dto.autentificacao;
 
 import com.wellscosta.ProSched.model.enums.Role;
 
