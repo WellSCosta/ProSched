@@ -1,6 +1,6 @@
 package com.wellscosta.ProSched.service;
 
-import com.wellscosta.ProSched.dto.agendamento.AgendamentoConfirmarRequestDTO;
+import com.wellscosta.ProSched.dto.agendamento.AgendamentoByIdRequestDTO;
 import com.wellscosta.ProSched.dto.agendamento.AgendamentoDisponibilidadeRequestDTO;
 import com.wellscosta.ProSched.model.Agendamento;
 import com.wellscosta.ProSched.model.Disponibilidade;
@@ -9,6 +9,7 @@ import com.wellscosta.ProSched.model.enums.StatusAgendamento;
 import com.wellscosta.ProSched.repository.AgendamentoRepository;
 import com.wellscosta.ProSched.repository.UsuarioRepository;
 import com.wellscosta.ProSched.service.exceptions.AgendamentoNaoExistenteException;
+import com.wellscosta.ProSched.service.exceptions.DisponibilidadeNaoExisteException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,12 +41,67 @@ public class AgendamentoService {
      * Set o status dos agendamentos restantes do mesmo horário como cancelados e salva no banco.
      * TODO verificações para os status cancelado e confirmado
      */
-    public Agendamento confirmarAgendamento(AgendamentoConfirmarRequestDTO dto) {
+    public Agendamento confirmarAgendamento(AgendamentoByIdRequestDTO dto) {
         Agendamento agendamento = buscarPorId(dto.id()).orElseThrow(AgendamentoNaoExistenteException::new);
         agendamento.setStatus(StatusAgendamento.CONFIRMADO);
         agendamento = agendamentoRepository.save(agendamento);
         cancelarAgendamentosSolicitadoPorHorario(agendamento.getHorario(), agendamento.getProfissional());
         return agendamento;
+    }
+
+    /**
+     * Lista todos os agendamentos pelo cliente
+     * @param cliente
+     * @return
+     */
+    public List<Agendamento> buscarAgendamentos(Usuario cliente) {
+        List<Agendamento> agendamentos = agendamentoRepository.findByCliente(cliente);
+        if (agendamentos.isEmpty()) {
+            throw new AgendamentoNaoExistenteException("Não há agendamentos");
+        }
+        return agendamentos;
+    }
+
+    /**
+     * Lista todos os agendamentos por status e por cliente
+     * @param cliente
+     * @param statusAgendamento
+     * @return List: Agendamentos por clientes
+     */
+    public List<Agendamento> buscarAgendamentosCliente(Usuario cliente, StatusAgendamento statusAgendamento) {
+        List<Agendamento> agendamentos = agendamentoRepository.findByClienteAndStatus(cliente, statusAgendamento);
+        if (agendamentos.isEmpty()) {
+            throw new AgendamentoNaoExistenteException("Não há agendamentos");
+        }
+        return agendamentos;
+    }
+
+    /**
+     * Lista todos os agendamentos por status e por profissional
+     * @param profissional
+     * @param statusAgendamento
+     * @return List: Agendamentos por profissional
+     */
+    public List<Agendamento> buscarAgendamentosProfissional(Usuario profissional, StatusAgendamento statusAgendamento) {
+        List<Agendamento> agendamentos = agendamentoRepository.findByProfissionalAndStatus(profissional, statusAgendamento);
+        if (agendamentos.isEmpty()) {
+            throw new AgendamentoNaoExistenteException("Não há agendamentos");
+        }
+        return agendamentos;
+    }
+
+    /**
+     * TODO Verificações, estando confirmado e faltando um dia NÃO poderá ser cancelado.
+     * TODO Verificar se já está cancelado
+     * @param id
+     * @return
+     */
+    public Agendamento cancelarAgendamentoById(Long id) {
+        Agendamento agendamento = agendamentoRepository
+                .findById(id).orElseThrow(AgendamentoNaoExistenteException::new);
+
+        agendamento.setStatus(StatusAgendamento.CANCELADO);
+        return agendamentoRepository.save(agendamento);
     }
 
     private Optional<Agendamento> buscarPorId(Long id) {
@@ -85,7 +141,7 @@ public class AgendamentoService {
 
         boolean existeDisponibilidade = disponibilidadeService.diponibilidadeExiste(disponibilidade);
         if (!existeDisponibilidade) {
-            throw new RuntimeException("Disponibilidade não existente");
+            throw new DisponibilidadeNaoExisteException("Disponibilidade não encontrada.");
         }
 
         return disponibilidade;
@@ -102,4 +158,5 @@ public class AgendamentoService {
                 .profissional(dto.profissional())
                 .build();
     }
+
 }
