@@ -43,9 +43,9 @@ public class AgendamentoController {
     /**
      * Somente ROLE: Profissional
      */
-    @PutMapping("/confirmar")
-    public ResponseEntity<AgendamentoResponseDTO> confirmarAgendamento(@RequestBody @Valid AgendamentoByIdRequestDTO dto) {
-        Agendamento agendamento = agendamentoService.confirmarAgendamento(dto);
+    @PutMapping("/confirmar/{id}")
+    public ResponseEntity<AgendamentoResponseDTO> confirmarAgendamento(@PathVariable Long id) {
+        Agendamento agendamento = agendamentoService.confirmarAgendamento(id);
         return ResponseEntity.ok(converterParaDTO(agendamento));
     }
 
@@ -76,9 +76,9 @@ public class AgendamentoController {
     /**
      * Somente ROLE: Profissional
      */
-    @PutMapping("/cancelar")
-    public ResponseEntity<AgendamentoResponseDTO> cancelarAgendamento(@RequestBody @Valid AgendamentoByIdRequestDTO dto) {
-        Agendamento agendamento = agendamentoService.cancelarAgendamentoById(dto.id());
+    @PutMapping("/cancelar/{id}")
+    public ResponseEntity<AgendamentoResponseDTO> cancelarAgendamento(@PathVariable Long id) {
+        Agendamento agendamento = agendamentoService.cancelarAgendamentoById(id);
         return ResponseEntity.ok(converterParaDTO(agendamento));
     }
 

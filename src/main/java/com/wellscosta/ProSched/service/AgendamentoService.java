@@ -1,6 +1,5 @@
 package com.wellscosta.ProSched.service;
 
-import com.wellscosta.ProSched.dto.agendamento.AgendamentoByIdRequestDTO;
 import com.wellscosta.ProSched.dto.agendamento.AgendamentoDisponibilidadeRequestDTO;
 import com.wellscosta.ProSched.model.Agendamento;
 import com.wellscosta.ProSched.model.Disponibilidade;
@@ -10,9 +9,12 @@ import com.wellscosta.ProSched.repository.AgendamentoRepository;
 import com.wellscosta.ProSched.repository.UsuarioRepository;
 import com.wellscosta.ProSched.service.exceptions.AgendamentoNaoExistenteException;
 import com.wellscosta.ProSched.service.exceptions.DisponibilidadeNaoExisteException;
+import com.wellscosta.ProSched.service.exceptions.StatusAgendamentoInvalidoException;
+import com.wellscosta.ProSched.service.exceptions.TempoLimiteCancelamentoException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -39,15 +41,19 @@ public class AgendamentoService {
     /**
      * Set o status do agendamento para confirmado e salva no banco.
      * Set o status dos agendamentos restantes do mesmo horário como cancelados e salva no banco.
-     * TODO verificações para os status cancelado e confirmado
      */
-    public Agendamento confirmarAgendamento(AgendamentoByIdRequestDTO dto) {
-        Agendamento agendamento = buscarPorId(dto.id()).orElseThrow(AgendamentoNaoExistenteException::new);
+    public Agendamento confirmarAgendamento(Long id) {
+        Agendamento agendamento = buscarPorId(id).orElseThrow(AgendamentoNaoExistenteException::new);
+        if(!verificaStatus(StatusAgendamento.SOLICITADO, agendamento)) {
+            throw new StatusAgendamentoInvalidoException("Status não pode ser: " + agendamento.getStatus().toString());
+        }
+
         agendamento.setStatus(StatusAgendamento.CONFIRMADO);
         agendamento = agendamentoRepository.save(agendamento);
         cancelarAgendamentosSolicitadoPorHorario(agendamento.getHorario(), agendamento.getProfissional());
         return agendamento;
     }
+
 
     /**
      * Lista todos os agendamentos pelo cliente
@@ -91,8 +97,6 @@ public class AgendamentoService {
     }
 
     /**
-     * TODO Verificações, estando confirmado e faltando um dia NÃO poderá ser cancelado.
-     * TODO Verificar se já está cancelado
      * @param id
      * @return
      */
@@ -100,8 +104,34 @@ public class AgendamentoService {
         Agendamento agendamento = agendamentoRepository
                 .findById(id).orElseThrow(AgendamentoNaoExistenteException::new);
 
+        verificaCancelamento(agendamento);
         agendamento.setStatus(StatusAgendamento.CANCELADO);
         return agendamentoRepository.save(agendamento);
+    }
+
+    private void verificaCancelamento(Agendamento agendamento) {
+        boolean statusConfirmado = agendamento.getStatus() == StatusAgendamento.CONFIRMADO;
+        boolean umDiaDePrazo = agendamento.getHorario().toLocalDate().isEqual(LocalDate.now().plusDays(1));
+        verificaPrazoCancelamento(statusConfirmado, umDiaDePrazo);
+
+        if (verificaStatus(StatusAgendamento.CANCELADO, agendamento)) {
+            throw new StatusAgendamentoInvalidoException("Agendamento já está cancelado");
+        }
+    }
+
+    private void verificaPrazoCancelamento(boolean statusConfirmado, boolean prazo) {
+        if (statusConfirmado && prazo) {
+            throw new TempoLimiteCancelamentoException();
+        }
+    }
+
+    /**
+     * Verifica se o status passado é valido
+     * @param status
+     * @param agendamento
+     */
+    private boolean verificaStatus(StatusAgendamento status, Agendamento agendamento) {
+        return agendamento.getStatus() == status;
     }
 
     private Optional<Agendamento> buscarPorId(Long id) {
